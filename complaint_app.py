@@ -7,12 +7,6 @@ import nltk
 import re
 
 
-nltk.download('punkt')
-stemmer=nltk.stem.SnowballStemmer('english')
-nltk.download('stopwords')
-stop_words=set(nltk.corpus.stopwords.words('english'))
-
-
 def main():
 
     st.title("Financial Complaints Product type prediction app")
@@ -24,6 +18,10 @@ def main():
     	+ To show a simple MLapps using Streamlit framework. 
     	""")
     my_dataset = "complaints.csv"
+    nltk.download('punkt')
+    stemmer=nltk.stem.SnowballStemmer('english')
+    nltk.download('stopwords')
+    stop_words=set(nltk.corpus.stopwords.words('english'))
 
     @st.cache(persist=True)
     def explore_data(dataset):
