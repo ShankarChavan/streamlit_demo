@@ -1,1 +1,1 @@
-web: sh setup.sh && streamlit run complaint_app.py
+web: streamlit run --server.enableCORS false --server.port $PORT complaint_app.py
