@@ -7,6 +7,18 @@ import nltk
 import re
 
 
+nltk.download('punkt')
+stemmer=nltk.stem.SnowballStemmer('english')
+nltk.download('stopwords')
+stop_words=set(nltk.corpus.stopwords.words('english'))
+
+def tokenize(text):
+    tokens = [word for word in nltk.word_tokenize(text) if (len(word) > 3 and len(word.strip('Xx/')) > 2 and len(re.sub('\d+', '', word.strip('Xx/'))) > 3) ] 
+    tokens = map(str.lower, tokens)
+    stems = [stemmer.stem(item) for item in tokens if (item not in stop_words)]
+    return stems
+
+
 def main():
 
     st.title("Financial Complaints Product type prediction app")
@@ -18,21 +30,11 @@ def main():
     	+ To show a simple MLapps using Streamlit framework. 
     	""")
     my_dataset = "complaints.csv"
-    nltk.download('punkt')
-    stemmer=nltk.stem.SnowballStemmer('english')
-    nltk.download('stopwords')
-    stop_words=set(nltk.corpus.stopwords.words('english'))
 
     @st.cache(persist=True)
     def explore_data(dataset):
     	df = pd.read_csv(os.path.join(dataset))
     	return df
-
-    def tokenize(text):
-        tokens = [word for word in nltk.word_tokenize(text) if (len(word) > 3 and len(word.strip('Xx/')) > 2 and len(re.sub('\d+', '', word.strip('Xx/'))) > 3) ] 
-        tokens = map(str.lower, tokens)
-        stems = [stemmer.stem(item) for item in tokens if (item not in stop_words)]
-        return stems
 
     @st.cache(persist=True)
     def load_model():
