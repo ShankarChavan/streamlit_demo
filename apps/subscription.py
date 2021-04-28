@@ -83,6 +83,7 @@ def generate_data(n_years):
     np.random.seed(1)
     # Prepare hypothetical data for 5 years i.e. 12 months    
     tot_months=calc_years_month(n_years)
+    tot_months=60
     
     subscription_data = {"Month": range(1, int(tot_months)+1), 
                          "Net Growth (%)": np.random.normal(0, 0.05, int(tot_months))}
@@ -129,7 +130,7 @@ def plot_data(results):
     fig,ax=plt.subplots()
     ax = sns.distplot(results, kde=False, norm_hist=True)
     ax.set_xlabel("Annual revenue across simulated 12 months in millions")
-    ax.set_ylabel("# of simulations")
+    ax.set_ylabel("Probability")
     return fig,ax
 
 def app():
@@ -141,7 +142,7 @@ def app():
     users=st.slider('USERS',min_value=100.0,max_value=10000.0,value=10000.0,step=10.0)
     price= st.slider("Price per user in $",min_value=5,max_value=10,step=5,value=10)
     rounds=st.slider("Number of rounds for simulation",min_value=1000.0,max_value=10000.0,value=10000.0,step=100.0)                     
-    fixed_cost=st.text_input("Fixed cost or expense of business",int(users*price*10))
+    fixed_cost=st.text_input("Fixed cost or expense of business",int(1000000))
 
 
     N_ROUNDS=rounds
@@ -163,14 +164,16 @@ def app():
             subscription_data,tol_mon=generate_data(N_YEARS)
             data=pd.DataFrame.from_dict(subscription_data)
             data["Net Growth (%)"] = pd.Series(["{0:.2f}%".format(val * 100) for val in data["Net Growth (%)"]], index = data.index)
-            st.write(data)
+            st.dataframe(data)            
+
         st.success("Done !")
 
         st.text("Running simulation on subscription data and plotting distribution of same")
         st.text("Simulation rounds: "+str(N_ROUNDS))
         with st.spinner(" running ..."):
             results=run_simulation(subscription_data,int(N_ROUNDS),int(N_YEARS),int(N_USERS),int(R_PER_USER))
-        st.success("Done!")
+        st.success("Done!")                
+
         fig,ax = plot_data(results)
         ax.set_yticklabels(['{:.9f}'.format(x) for x in ax.get_yticks().tolist()])    
         st.pyplot(fig=fig)    
@@ -200,16 +203,24 @@ def app():
 
         {str(one_percent)} out of {str(N_ROUNDS)} (1%) simulated total revenue results are lower 
         than this number, 99% are equal or higher,so we are 99% confident we would achieve or 
-        exceed that number.
+        exceed that number. Below is the code to get this number from simulation result 
         '''
-        st.markdown(desc_new)    
+
+        st.text(desc_new)    
         conf_op=results[100]    
         sub_conf=int(fixed_cost)-int(conf_op)        
+        code=f'''
+        sorted(simulation_results)[100]
+        {str(int(conf_op))}
+        '''
+        st.code(code)        
 
         desc_conclusion=f'''
         We are 99% confident that we can achieve or exceed $ {str(numerize(conf_op))} over the next 12 months 
         based on this simulation. This would keep us $ {str(numerize(sub_conf))} short of the $ {str(numerize(int(fixed_cost)))} needed 
         to cover our annual expenses.
+        
+        i.e. {str(numerize(int(fixed_cost)))} - {str(numerize(conf_op))} = {str(numerize(sub_conf))}
 
         We need to set aside $ {str(numerize(sub_conf))} to be 99% confident of being able to pay the $ {str(numerize(int(fixed_cost)))} million 
         of annual expenses in the next year.
